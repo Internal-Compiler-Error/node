@@ -82,10 +82,6 @@ GYP_DEFINES += " host_os=" + host_os + " OS=android"
 GYP_DEFINES += " android_ndk_path=" + android_ndk_path
 os.environ['GYP_DEFINES'] = GYP_DEFINES
 
-# Temporal's Rust crates are built for the host, not the device, when cross-compiling.
-if "--v8-enable-temporal-support" not in extra_flags:
-    extra_flags.append("--v8-disable-temporal-support")
-
 if os.path.exists("./configure"):
     cmd = "./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling " + " ".join(extra_flags)
     print("\033[92mInfo: \033[0m" + "Running command: " + cmd)

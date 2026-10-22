@@ -6,6 +6,7 @@
     'zoneinfo64_dir': 'zoneinfo64-v0_3',
     'temporal_zoneinfo64_data_output': '<(SHARED_INTERMEDIATE_DIR)/src/builtins/builtins-temporal-zoneinfo64-data.cc',
     'cargo_rust_target%': '',
+    'cargo_android_rust_target%': '',
   },
   'conditions': [
     ['build_type == "Release"', {
@@ -43,7 +44,23 @@
           },
         }],
       ],
-    }]
+    }],
+    ['OS=="android"', {
+      # Host tools and the device binary are built for different Rust targets,
+      # so give each toolset its own cargo output directory. make expands
+      # $(TOOLSET) per target.
+      'conditions': [
+        ['build_type == "Release"', {
+          'variables': {
+            'node_crates_libpath': '<(SHARED_INTERMEDIATE_DIR)/cargo.$(TOOLSET)/release/libnode_crates.a',
+          },
+        }, {
+          'variables': {
+            'node_crates_libpath': '<(SHARED_INTERMEDIATE_DIR)/cargo.$(TOOLSET)/debug/libnode_crates.a',
+          },
+        }],
+      ],
+    }],
   ],
   'targets': [
     {
@@ -90,7 +107,30 @@
               ],
             }
           ],
-        }, {
+        }],
+        ['OS=="android"', {
+          'actions': [
+            {
+              'action_name': 'cargo_build',
+              'inputs': [
+                '<@(_sources)'
+              ],
+              'outputs': [
+                '<(node_crates_libpath)'
+              ],
+              'action': [
+                '<(python)',
+                'cargo_build_android.py',
+                '$(TOOLSET)',
+                '<(cargo_android_rust_target)',
+                '<(SHARED_INTERMEDIATE_DIR)/cargo.$(TOOLSET)',
+                '<@(cargo_build_flags)',
+                '--frozen',
+              ],
+            }
+          ],
+        }],
+        ['OS!="win" and OS!="android"', {
           'actions': [
             {
               'action_name': 'cargo_build',

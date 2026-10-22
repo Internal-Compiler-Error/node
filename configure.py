@@ -1945,6 +1945,16 @@ def configure_node(o):
   # under Rosetta 2.
   if flavor == 'mac' and target_arch == 'x64':
     o['variables']['cargo_rust_target'] = 'x86_64-apple-darwin'
+  # When cross-compiling for Android, host tools (e.g. mksnapshot) and the
+  # device binary need different Rust targets; crates.gyp picks per toolset.
+  o['variables']['cargo_android_rust_target'] = ''
+  if flavor == 'android':
+    o['variables']['cargo_android_rust_target'] = {
+      'arm': 'armv7-linux-androideabi',
+      'arm64': 'aarch64-linux-android',
+      'ia32': 'i686-linux-android',
+      'x64': 'x86_64-linux-android',
+    }[target_arch]
 
   # Allow overriding the compiler - needed by embedders.
   if options.use_clang:
